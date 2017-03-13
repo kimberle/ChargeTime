@@ -19,6 +19,8 @@ public class ChargeTime {
 	private String start;
 	/* End date and time */
 	private String stop;
+	/* Is this a multi-day charge? */
+	private Boolean multi;
 	/* Charges for the given start and stop days and times */
 	private String charges;
 	/* Format of date/time entry */
@@ -63,21 +65,25 @@ public class ChargeTime {
 	private final static int HUNDREDS = 100;
 
 	/**
-	 * Constructs a new ChargeTime with a given start date and time and stop
-	 * date and time. The date is in the format of MMdd and the time is the in
-	 * the format of HHmm. Proper start format is "MMdd HHmm". Proper stop
-	 * format is "MMdd HHmm".
+	 * Constructs a new ChargeTime with the given start time and stop time, and if
+	 * a multi charge event (multi = true), then includes the start date and 
+	 * stop date. The date is in the format of MMdd and the time is in the format
+	 * of HHmm. Proper start format is "MMdd HHmm". Proper stop format is 
+	 * "MMdd HHmm".
 	 * 
 	 * @param start
 	 *            the starting date and time in the format of "MMdd HHmm"
 	 * @param stop
 	 *            the stopping date and time in the format of "MMdd HHmm"
+	 * @param multi
+	 *            boolean for whether this is a multi-day event
 	 * @throws IllegalArgumentException
 	 *             if the parameters given are not in the proper format
 	 */
-	public ChargeTime(String start, String stop) {
+	public ChargeTime(String start, String stop, Boolean multi) {
 		this.start = start;
 		this.stop = stop;
+		this.multi = multi;
 		if (isProperFormat(start) && isProperFormat(stop)) {
 			this.charges = calculateCharges();
 		} else {
@@ -116,11 +122,14 @@ public class ChargeTime {
 			// in milliseconds
 			long diff = d2.getTime() - d1.getTime();
 
-			if (isNewYear()) { 
-				if (wasLeapYear()) {
-					diff = (d2.getTime() + MILLS_IN_LEAP_YEAR) - d1.getTime();
-				} else {
-					diff = (d2.getTime() + MILLS_IN_YEAR) - d1.getTime();
+			// if multi days and crosses to a new year (ex., dec 28 - jan 10)
+			if (multi) {
+				if (isNewYear()) { 
+					if (wasLeapYear()) {
+						diff = (d2.getTime() + MILLS_IN_LEAP_YEAR) - d1.getTime();
+					} else {
+						diff = (d2.getTime() + MILLS_IN_YEAR) - d1.getTime();
+					}
 				}
 			}
 
@@ -132,7 +141,7 @@ public class ChargeTime {
 			double totalHours = (diffDays * HOUR_PER_DAY) + (diffHours) + (diffMinutes / (double) MIN_PER_HOUR);
 
 			// multiple days?
-			if (isDays(this.start, this.stop)) {
+			if (multi) {
 				int numberOfDays = numDaysToCalculate(this.start, this.stop);
 				int thisDay = 1;
 				while (thisDay <= numberOfDays) {
@@ -174,16 +183,6 @@ public class ChargeTime {
 		BigDecimal bigDecimal = new BigDecimal(value);
 		bigDecimal = bigDecimal.setScale(numberOfDigitsAfterDecimalPoint, BigDecimal.ROUND_HALF_UP);
 		return bigDecimal.doubleValue();
-	}
-
-	/* Are the given dates multiple days? */
-	private boolean isDays(String start, String stop) {
-		if (start.substring(DAY_START, DAY_END).compareTo(stop.substring(DAY_START, DAY_END)) < 0) {
-			return true;
-		} else if (isNewYear()) {
-			return true;
-		}
-		return false;
 	}
 
 	/*

@@ -3,10 +3,13 @@ package ui;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
 
 import javax.swing.*;
 
@@ -18,7 +21,7 @@ import main.ChargeTime;
  * @author Kimberle McGill
  * @version 1.0.160115
  */
-public class ChargeUI extends JFrame implements ActionListener {
+public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 
 	/** ID number used for object serialization. */
 	private static final long serialVersionUID = 1L;
@@ -71,7 +74,7 @@ public class ChargeUI extends JFrame implements ActionListener {
 	/** Text area for displaying charges */
 	private JTextArea areaCharges;
 	/** Button for calculating multiple days */
-	private JButton btnDays;
+	private JCheckBox chkDays;
 	/** Button for running the calculations */
 	private JButton btnCalculate;
 	/** Button for clearing the fields */
@@ -94,6 +97,8 @@ public class ChargeUI extends JFrame implements ActionListener {
 	private Dimension button1Bumper = new Dimension(50, 0);
 	/** Dimension of rigid space between new and quit buttons */
 	private Dimension button2Bumper = new Dimension(55, 0);
+	/** Is the multi-day check mark selected? */
+	private Boolean isChecked;
 	/** Size of date / time text fields */
 	private static final int TEXT_ENTRY = 8;
 	/** Width of Panel */
@@ -112,6 +117,8 @@ public class ChargeUI extends JFrame implements ActionListener {
 	private static final int PROPER_ENTRY_LENGTH = 4;
 	/** Title of the application */
 	private static final String APP_TITLE = "Perfusion Charges";
+	/** Integer for the month of October (first double digit month) */
+	private static final int OCT = 10;
 
 	/**
 	 * Creates a new ChargeUI.
@@ -132,14 +139,17 @@ public class ChargeUI extends JFrame implements ActionListener {
 		// set toggle button panel
 		pnlToggle = new JPanel();
 		pnlToggle.setMaximumSize(togglePanelSize);
-		btnDays = new JButton("MULTI-DAY CALCULATION");
-		btnDays.addActionListener(this);
-		pnlToggle.add(btnDays, BorderLayout.CENTER);
+		chkDays = new JCheckBox("MULTI-DAY CALCULATION", false);
+		isChecked = false;
+		chkDays.addItemListener(this);
+		pnlToggle.add(chkDays, BorderLayout.CENTER);
 
 		// set start date panel
 		pnlStartDate = new JPanel();
 		lblStartDate = new JLabel("Start Date (MMdd): ");
 		txtStartDate = new JTextField(TEXT_ENTRY);
+		txtStartDate.setEnabled(false);
+		txtStartDate.setBackground(Color.GRAY);
 		pnlStartDate.add(lblStartDate);
 		pnlStartDate.add(txtStartDate);
 		// set start time panel
@@ -159,6 +169,8 @@ public class ChargeUI extends JFrame implements ActionListener {
 		pnlStopDate = new JPanel();
 		lblStopDate = new JLabel("Stop Date (MMdd): ");
 		txtStopDate = new JTextField(TEXT_ENTRY);
+		txtStopDate.setBackground(Color.GRAY);
+		txtStopDate.setEnabled(false);
 		pnlStopDate.add(lblStopDate);
 		pnlStopDate.add(txtStopDate);
 		// set stop time panel
@@ -199,7 +211,7 @@ public class ChargeUI extends JFrame implements ActionListener {
 		pnlButtons.add(btnNew);
 		pnlButtons.add(Box.createRigidArea(button2Bumper));
 		pnlButtons.add(btnQuit);
-
+		
 		// add separate panels to main panel
 		panel.add(pnlToggle);
 		panel.add(Box.createRigidArea(panelBumper));
@@ -228,6 +240,33 @@ public class ChargeUI extends JFrame implements ActionListener {
 		// Set the GUI visible
 		setVisible(true);
 	}
+	
+	/**
+	 * Item listener specific for the check box event.
+	 * 
+	 * @param e 
+	 *            state of check box
+	 */
+	public void itemStateChanged(ItemEvent e) {
+		if(e.getStateChange() == ItemEvent.SELECTED) {
+			txtStartDate.setEnabled(true);
+			txtStartDate.setText("");
+			txtStartDate.setBackground(Color.WHITE);
+			txtStopDate.setEnabled(true);
+			txtStopDate.setText("");
+			txtStopDate.setBackground(Color.WHITE);
+			isChecked = true;
+		}
+		else if(e.getStateChange() == ItemEvent.DESELECTED){
+			txtStartDate.setEnabled(false);
+			txtStartDate.setText("");
+			txtStartDate.setBackground(Color.GRAY);
+			txtStopDate.setEnabled(false);
+			txtStopDate.setText("");
+			txtStopDate.setBackground(Color.GRAY);
+			isChecked = false;
+		}
+	}
 
 	/**
 	 * Performs an action based on the given ActionEvent.
@@ -247,16 +286,14 @@ public class ChargeUI extends JFrame implements ActionListener {
 			txtStopDate.setText("");
 			txtStopTime.setText("");
 			areaCharges.setText("");
-			startDate = "";
 			startTime = "";
-			stopDate = "";
 			stopTime = "";
 			charge = null;
 		}
 	}
 
 	/**
-	 * Handles using the Enter key during the login process.
+	 * Handles using the Enter key.
 	 */
 	private void handleEnterKey() {
 		txtStartDate.addKeyListener(new KeyAdapter() {
@@ -417,7 +454,6 @@ public class ChargeUI extends JFrame implements ActionListener {
 					stopDate = "";
 					stopTime = "";
 					charge = null;
-					btnQuit.requestFocus();
 				}
 			}
 		});
@@ -438,9 +474,23 @@ public class ChargeUI extends JFrame implements ActionListener {
 	private void calculateCharge() {
 		try {
 			if (isFilledOut()) {
-				startDate = txtStartDate.getText().trim();
+				// multi day?
+				if (isChecked) {
+					startDate = txtStartDate.getText().trim();
+					stopDate = txtStopDate.getText().trim();
+				// if not, use today's date
+				} else {
+					String today;
+					// add a leading zero for months less then October
+					if (LocalDate.now().getMonthValue() < OCT) {
+						today = "0" + LocalDate.now().getMonthValue() + "" + LocalDate.now().getDayOfMonth();
+					} else {
+						today = "" + LocalDate.now().getMonthValue() + "" + LocalDate.now().getDayOfMonth();
+					}
+					startDate = today;
+					stopDate = today;
+				}
 				startTime = txtStartTime.getText().trim();
-				stopDate = txtStopDate.getText().trim();
 				stopTime = txtStopTime.getText().trim();
 			} else {
 				JOptionPane.showMessageDialog(panel, "Please provide ALL dates and times!", "INPUT ERROR",
@@ -450,7 +500,7 @@ public class ChargeUI extends JFrame implements ActionListener {
 
 			String chargeStart = startDate + " " + startTime;
 			String chargeEnd = stopDate + " " + stopTime;
-			charge = new ChargeTime(chargeStart, chargeEnd);
+			charge = new ChargeTime(chargeStart, chargeEnd, isChecked);
 			areaCharges.setText(charge.getCharges());
 		} catch (IllegalArgumentException e) {
 			JOptionPane.showMessageDialog(panel, e.getMessage(), "COMPUTATIONAL ERROR", JOptionPane.WARNING_MESSAGE);
@@ -464,7 +514,7 @@ public class ChargeUI extends JFrame implements ActionListener {
 			stopDate = "";
 			stopTime = "";
 			charge = null;
-			txtStartDate.requestFocus();
+			chkDays.requestFocus();
 		}
 	}
 
@@ -496,13 +546,20 @@ public class ChargeUI extends JFrame implements ActionListener {
 	}
 
 	/**
-	 * Checks if all the fields have entries.
+	 * Checks if the proper fields have entries.
 	 */
 	private boolean isFilledOut() {
-		if (txtStartDate.getText().isEmpty() || txtStartTime.getText().isEmpty() || txtStopDate.getText().isEmpty()
-				|| txtStopTime.getText().isEmpty()) {
-			return false;
+		if (isChecked) {
+			if (txtStartDate.getText().isEmpty() || txtStartTime.getText().isEmpty() || txtStopDate.getText().isEmpty()
+					|| txtStopTime.getText().isEmpty()) {
+				return false;
+			}
+		} else {
+			if (txtStartTime.getText().isEmpty() || txtStopTime.getText().isEmpty()) {
+				return false;
+			}
 		}
+		
 		return true;
 	}
 }
