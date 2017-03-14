@@ -19,7 +19,7 @@ import main.ChargeTime;
  * ChargeUI maintains the user interface for calculating charge times.
  * 
  * @author Kimberle McGill
- * @version 1.0.160115
+ * @version 1.1.170314
  */
 public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 
@@ -242,7 +242,7 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 	}
 	
 	/**
-	 * Item listener specific for the check box event.
+	 * Item listener specific for the check box component.
 	 * 
 	 * @param e 
 	 *            state of check box
@@ -293,7 +293,7 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 	}
 
 	/**
-	 * Handles using the Enter key.
+	 * Handles using the Enter key on different components.
 	 */
 	private void handleEnterKey() {
 		txtStartDate.addKeyListener(new KeyAdapter() {
@@ -308,7 +308,7 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 						// get the entry
 						startDate = txtStartDate.getText().trim();
 
-						if (!startDate.isEmpty() && !startTime.isEmpty() && !stopDate.isEmpty()) {
+						if (!stopDate.isEmpty() && !startTime.isEmpty() && !stopTime.isEmpty()) {
 
 							calculateCharge();
 
@@ -323,8 +323,10 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 						JOptionPane.showMessageDialog(panel, "Invalid Date Format!\nMust be MMdd", "INPUT ERROR",
 								JOptionPane.WARNING_MESSAGE);
 						txtStartDate.setText("");
+					} else if (txtStartDate.getText().isEmpty()) {
+						JOptionPane.showMessageDialog(panel,  "Please enter the start date", "INPUT ERROR",
+								JOptionPane.WARNING_MESSAGE);
 					}
-
 				}
 			}
 		});
@@ -340,7 +342,7 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 						// get the entry
 						startTime = txtStartTime.getText().trim();
 
-						if (!startDate.isEmpty() && !startTime.isEmpty() && !stopDate.isEmpty()) {
+						if (!stopTime.isEmpty()) {
 
 							calculateCharge();
 
@@ -351,12 +353,14 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 							// move to next field
 							txtStopDate.requestFocus();
 						}
-					} else {
+					} else if (!txtStartTime.getText().isEmpty()) {
 						JOptionPane.showMessageDialog(panel, "Invalid Time Format!\nMust be HHmm", "INPUT ERROR",
 								JOptionPane.WARNING_MESSAGE);
 						txtStartTime.setText("");
+					} else if (txtStartTime.getText().isEmpty()) {
+						JOptionPane.showMessageDialog(panel,  "Please enter the start time", "INPUT ERROR",
+								JOptionPane.WARNING_MESSAGE);
 					}
-
 				}
 			}
 		});
@@ -372,7 +376,7 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 						// get entry
 						stopDate = txtStopDate.getText().trim();
 
-						if (!startDate.isEmpty() && !startTime.isEmpty() && !stopDate.isEmpty()) {
+						if (!startDate.isEmpty() && !startTime.isEmpty() && !stopTime.isEmpty()) {
 
 							calculateCharge();
 
@@ -384,11 +388,13 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 							txtStopTime.requestFocus();
 						}
 					} else if (!txtStopDate.getText().isEmpty()) {
-						JOptionPane.showMessageDialog(panel, "Invalid Time Format!\nMust be HHmm", "INPUT ERROR",
+						JOptionPane.showMessageDialog(panel, "Invalid Date Format!\nMust be MMdd", "INPUT ERROR",
 								JOptionPane.WARNING_MESSAGE);
 						txtStopDate.setText("");
+					} else if (txtStopDate.getText().isEmpty()) {
+						JOptionPane.showMessageDialog(panel,  "Please enter the stop date", "INPUT ERROR",
+								JOptionPane.WARNING_MESSAGE);
 					}
-
 				}
 			}
 		});
@@ -396,10 +402,10 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 			public void keyPressed(KeyEvent e) {
 				int key = e.getKeyCode();
 				if (key == KeyEvent.VK_ENTER) {
-
+                    
 					// if not empty
 					// if properly formatted
-					if (!txtStopDate.getText().isEmpty() && isProperFormat(txtStopTime.getText().trim())) {
+					if (!txtStopTime.getText().isEmpty() && isProperFormat(txtStopTime.getText().trim())) {
 
 						// get entry
 						stopTime = txtStopTime.getText().trim();
@@ -422,12 +428,14 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 							}
 						}
 
-					} else if (!txtStopDate.getText().isEmpty()) {
-						JOptionPane.showMessageDialog(panel, "Invalid Date Format!\nMust be MMdd", "INPUT ERROR",
+					} else if (!txtStopTime.getText().isEmpty()) {
+						JOptionPane.showMessageDialog(panel, "Invalid Time Format!\nMust be HHmm", "INPUT ERROR",
 								JOptionPane.WARNING_MESSAGE);
 						txtStopTime.setText("");
+					} else if (txtStopTime.getText().isEmpty()) {
+						JOptionPane.showMessageDialog(panel,  "Please enter the stop time", "INPUT ERROR",
+								JOptionPane.WARNING_MESSAGE);
 					}
-
 				}
 			}
 		});
