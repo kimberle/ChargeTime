@@ -508,8 +508,8 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 
 			String chargeStart = startDate + " " + startTime;
 			String chargeEnd = stopDate + " " + stopTime;
-			charge = new ChargeTime(chargeStart, chargeEnd, isChecked);
-			areaCharges.setText(charge.getCharges());
+			this.charge = new ChargeTime(chargeStart, chargeEnd, isChecked);
+			this.areaCharges.setText(charge.getCharges());
 		} catch (IllegalArgumentException e) {
 			JOptionPane.showMessageDialog(panel, e.getMessage(), "COMPUTATIONAL ERROR", JOptionPane.WARNING_MESSAGE);
 			txtStartDate.setText("");

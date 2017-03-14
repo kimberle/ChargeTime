@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -146,8 +147,15 @@ public class ChargeTime {
 			// multiple days?
 			if (this.multi) {
 				
-				int numberOfDays = numDaysToCalculate(this.start, this.stop);
+				// for iterating through the proper number of days
+				int numberOfDays = numDaysToCalculate(this.start, this.stop);				
 				int thisDay = 1;
+				// for generating a string date
+				String currentDate = "";
+				Calendar cal = Calendar.getInstance();
+				cal.setTime(d1);
+				DateFormatSymbols dfs = new DateFormatSymbols();
+				
 				while (thisDay <= numberOfDays) {
                     
 					long minutes;
@@ -161,16 +169,18 @@ public class ChargeTime {
 						minutes = numberOfMinutes(MIDNIGHT, LAST_MIN_OF_DAY) + 1;
 					}
 					
-					timeTotal += ("Day " + thisDay + " minutes: " + splitMins(minutes) + "\n");
+					currentDate = "" + dfs.getMonths()[cal.get(Calendar.MONTH)] + 
+							" " + cal.get(Calendar.DAY_OF_MONTH);
+					timeTotal += "Mintues for " + currentDate +  ": \t" + splitMins(minutes) + "\n";
 					
 					// move to next day
 					thisDay++;
+					cal.add(Calendar.DAY_OF_MONTH, 1);
 				}
 				
-				timeTotal += (diffDays + " days, ");
-				timeTotal += (diffHours + " hours, ");
-				timeTotal += (diffMinutes + " minutes\n");
-				timeTotal += ("Total hours: " + round(totalHours, 2) + " hours\n");
+				double hours = totalHours - (totalHours % MIN_PER_HOUR);
+				double minutesLeft = totalHours % MIN_PER_HOUR;
+				timeTotal += ("Total hours/minutes: " + hours + " hours and " + minutesLeft + "minutes\n");
 				timeTotal += ("Total minutes: " + totalMins + " minutes\n");
 				
 			// single day, total minutes only to be displayed
@@ -183,15 +193,6 @@ public class ChargeTime {
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Invalid calculation in date/times");
 		}
-	}
-
-	/*
-	 * Rounds to the nearest given digits after the decimal
-	 */
-	private double round(double value, int numberOfDigitsAfterDecimalPoint) {
-		BigDecimal bigDecimal = new BigDecimal(value);
-		bigDecimal = bigDecimal.setScale(numberOfDigitsAfterDecimalPoint, BigDecimal.ROUND_HALF_UP);
-		return bigDecimal.doubleValue();
 	}
 
 	/*
@@ -209,8 +210,8 @@ public class ChargeTime {
 
 		// consider December - January (different years)
 		if (isNewYear()) {
-			stopDay = (thisYear + 1) + "-" + stop.substring(MONTH_START, MONTH_END);
-			stopDay += "-" + stop.substring(DAY_START, DAY_END);
+			startDay = (thisYear - 1) + "-" + start.substring(MONTH_START, MONTH_END);
+			startDay += "-" + start.substring(DAY_START, DAY_END);
 		}
 
 		int days = 0;
@@ -310,19 +311,5 @@ public class ChargeTime {
 			properMins = "" + totalMins;
 		}
 		return properMins;
-	}
-	
-	/*
-	 * Returns the month name for the given int.
-	 * int must be between 0 and 11.
-	 */
-	String getMonthForInt(int month) {
-		String monthName = "INVALID INT for MONTH";
-		DateFormatSymbols dfs = new DateFormatSymbols();
-		String[] months = dfs.getMonths();
-		if (month >= 0 && month <= 11) {
-			monthName = months[month];
-		} 
-		return monthName;
 	}
 }
