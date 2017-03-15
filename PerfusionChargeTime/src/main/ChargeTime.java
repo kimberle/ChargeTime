@@ -178,9 +178,13 @@ public class ChargeTime {
 					cal.add(Calendar.DAY_OF_MONTH, 1);
 				}
 				
-				double hours = totalHours - (totalHours % MIN_PER_HOUR);
-				double minutesLeft = totalHours % MIN_PER_HOUR;
-				timeTotal += ("Total hours/minutes: " + hours + " hours and " + minutesLeft + "minutes\n");
+				// get hours only
+				double hours = round(totalHours, 0);
+				// get minutes left
+				double minutesLeft = (totalHours % HOUR_PER_DAY) * MIN_PER_HOUR;
+				minutesLeft = round(minutesLeft, 0);
+				timeTotal += ("Total hours/minutes: " + hours + " hours and " + 
+				    splitMins((long) minutesLeft) + " minutes\n");
 				timeTotal += ("Total minutes: " + totalMins + " minutes\n");
 				
 			// single day, total minutes only to be displayed
@@ -311,5 +315,14 @@ public class ChargeTime {
 			properMins = "" + totalMins;
 		}
 		return properMins;
+	}
+	
+	/*
+	 * Rounds to the nearest given digits after the decimal
+	 */
+	private double round(double value, int numberOfDigitsAfterDecimalPoint) {
+	    BigDecimal bigDecimal = new BigDecimal(value);
+	    bigDecimal = bigDecimal.setScale(numberOfDigitsAfterDecimalPoint, BigDecimal.ROUND_HALF_UP);
+	    return bigDecimal.doubleValue();
 	}
 }
