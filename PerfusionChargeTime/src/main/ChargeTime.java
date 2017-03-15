@@ -67,6 +67,8 @@ public class ChargeTime {
 	private final static int HUNDREDS = 100;
 	/* Maximum number of minutes for charge entry */
 	private final static int MAX_MINS = 999;
+	/* The value for a single */
+	private final static int SINGLE = 1;
 
 	/**
 	 * Constructs a new ChargeTime with the given start time and stop time, and if
@@ -149,7 +151,7 @@ public class ChargeTime {
 				
 				// for iterating through the proper number of days
 				int numberOfDays = numDaysToCalculate(this.start, this.stop);				
-				int thisDay = 1;
+				int thisDay = SINGLE;
 				// for generating a string date
 				String currentDate = "";
 				Calendar cal = Calendar.getInstance();
@@ -161,12 +163,12 @@ public class ChargeTime {
 					long minutes;
 					
 					// get first day
-					if (thisDay == 1) {
-						minutes = numberOfMinutes(this.start.substring(TIME_START), LAST_MIN_OF_DAY) + 1;
+					if (thisDay == SINGLE) {
+						minutes = numberOfMinutes(this.start.substring(TIME_START), LAST_MIN_OF_DAY) + SINGLE;
 					} else if (thisDay == numberOfDays) {
 						minutes = numberOfMinutes(MIDNIGHT, this.stop.substring(TIME_START));
 					} else {
-						minutes = numberOfMinutes(MIDNIGHT, LAST_MIN_OF_DAY) + 1;
+						minutes = numberOfMinutes(MIDNIGHT, LAST_MIN_OF_DAY) + SINGLE;
 					}
 					
 					currentDate = "" + dfs.getMonths()[cal.get(Calendar.MONTH)] + 
@@ -175,21 +177,29 @@ public class ChargeTime {
 					
 					// move to next day
 					thisDay++;
-					cal.add(Calendar.DAY_OF_MONTH, 1);
+					cal.add(Calendar.DAY_OF_MONTH, SINGLE);
 				}
 				
 				// get hours only
-				double hours = round(totalHours, 0);
+				int hours = (int) totalHours;
 				// get minutes left
-				double minutesLeft = (totalHours % HOUR_PER_DAY) * MIN_PER_HOUR;
-				minutesLeft = round(minutesLeft, 0);
-				timeTotal += ("Total hours/minutes: " + hours + " hours and " + 
-				    splitMins((long) minutesLeft) + " minutes\n");
-				timeTotal += ("Total minutes: " + totalMins + " minutes\n");
+				double minutesLeft = (totalHours - hours) * MIN_PER_HOUR;
+				int minutesOnly = (int) round(minutesLeft, 0);
+				// use proper grammar (minute vs. minutes)
+				if (minutesOnly == SINGLE) {
+					timeTotal += ("\nHours, minutes: \t" + hours + " hours, " + minutesOnly + " minute\n");
+				} else {
+					timeTotal += ("\nHours, minutes: \t" + hours + " hours, " + minutesOnly + " minutes\n");
+				}
+				if (totalMins == SINGLE) {
+					timeTotal += ("Total minutes: \t\t" + totalMins + " minute\n");
+				} else {
+					timeTotal += ("Total minutes: \t\t" + totalMins + " minutes\n");
+				}
 				
 			// single day, total minutes only to be displayed
 			} else {
-				timeTotal = "Total minutes: " + splitMins(totalMins) + " minutes\n";
+				timeTotal = "Total minutes: \t" + splitMins(totalMins) + " minutes\n";
 			}
 
 			return timeTotal;
@@ -214,7 +224,7 @@ public class ChargeTime {
 
 		// consider December - January (different years)
 		if (isNewYear()) {
-			startDay = (thisYear - 1) + "-" + start.substring(MONTH_START, MONTH_END);
+			startDay = (thisYear - SINGLE) + "-" + start.substring(MONTH_START, MONTH_END);
 			startDay += "-" + start.substring(DAY_START, DAY_END);
 		}
 
@@ -295,7 +305,7 @@ public class ChargeTime {
 	 * Was last year a leap year?
 	 */
 	private boolean wasLeapYear() {
-		int lastYear = LocalDate.now().getYear() - 1;
+		int lastYear = LocalDate.now().getYear() - SINGLE;
 		if ((lastYear % HUNDREDS_BY_FOUR == 0) 
 				|| ((lastYear % ONES_BY_FOUR == 0) && (lastYear % HUNDREDS != 0))) {
 			return true;
