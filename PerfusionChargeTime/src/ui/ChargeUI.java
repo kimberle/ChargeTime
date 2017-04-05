@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.LocalDate;
+import java.util.Objects;
 
 import javax.swing.*;
 
@@ -486,14 +487,26 @@ public class ChargeUI extends JFrame implements ActionListener, ItemListener {
 				if (isChecked) {
 					startDate = txtStartDate.getText().trim();
 					stopDate = txtStopDate.getText().trim();
+					// did the user enter the same dates?
+					if (Objects.equals(startDate, stopDate)) {
+						isChecked = false;
+						JOptionPane.showMessageDialog(panel, "Days entered are the SAME", "Warning!", 
+								JOptionPane.WARNING_MESSAGE);
+					}
 				// if not, use today's date
 				} else {
 					String today;
 					// add a leading zero for months less then October
 					if (LocalDate.now().getMonthValue() < OCT) {
-						today = "0" + LocalDate.now().getMonthValue() + "" + LocalDate.now().getDayOfMonth();
+						today = "0" + LocalDate.now().getMonthValue();
 					} else {
-						today = "" + LocalDate.now().getMonthValue() + "" + LocalDate.now().getDayOfMonth();
+						today = "" + LocalDate.now().getMonthValue();
+					}
+					// add a leading zero for days less than 10
+					if (LocalDate.now().getDayOfMonth() < 10) {
+						today += "0" + LocalDate.now().getDayOfMonth();
+					} else {
+						today += LocalDate.now().getDayOfMonth();
 					}
 					startDate = today;
 					stopDate = today;
